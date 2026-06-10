@@ -1,0 +1,2 @@
+model,accuracy,macro_f1,parameters,weights,approx_model_bytes,hidden_layers
+baseline_mlp_float64_storage,1.0,1.0,51395,51296,411160,"(64, 32)"
