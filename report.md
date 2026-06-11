@@ -2,7 +2,7 @@
 
 ## Motivation
 
-The previous version used an easy synthetic image task and gave perfect accuracy. We replaced it with real CIFAR-10 so the compression curves show meaningful accuracy changes.
+We use real CIFAR-10 so the compression curves show meaningful accuracy changes.
 
 ## Dataset
 
@@ -24,4 +24,4 @@ The model has redundancy: many small weights can be removed without large accura
 
 ## Conclusion
 
-This project now gives a realistic compression sensitivity analysis. Moderate pruning and int8 quantization are useful, while extreme pruning or very low-bit quantization should be used carefully.
+This project gives a realistic compression sensitivity analysis. Moderate pruning and int8 quantization are useful, while extreme pruning or very low-bit quantization should be used carefully.

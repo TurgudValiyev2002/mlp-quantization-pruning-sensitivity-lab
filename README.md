@@ -14,7 +14,7 @@ Figure: train an MLP on real CIFAR-10, then test quantization, pruning, and comb
 
 ## Motivation
 
-The earlier version of this project used a synthetic image task and produced perfect accuracy. That was not a useful sensitivity test. A compression lab should show where accuracy stays stable and where it starts to break. This version uses real CIFAR-10, which is harder and more realistic.
+A compression lab should show where accuracy stays stable and where it starts to break. This project uses real CIFAR-10, which is hard enough to make the compression curves meaningful.
 
 ## Project Goal
 
@@ -100,7 +100,7 @@ The combined pruning plus int8 result is practical: pruning 70% of weights and t
 
 ## Conclusion
 
-This project now shows real compression sensitivity instead of a perfect synthetic result. For this MLP, int8 quantization and moderate pruning are safe, while very aggressive pruning or 2-bit/1-bit quantization is risky. A stronger next step is to repeat the same analysis on a small CNN.
+This project shows real compression sensitivity on CIFAR-10. For this MLP, int8 quantization and moderate pruning are safe, while very aggressive pruning or 2-bit/1-bit quantization is risky. A stronger next step is to repeat the same analysis on a small CNN.
 
 ## How To Run
 
