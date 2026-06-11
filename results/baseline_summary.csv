@@ -1,2 +1,2 @@
-model,accuracy,macro_f1,parameters,weights,approx_model_bytes,hidden_layers
-baseline_mlp_float64_storage,1.0,1.0,51395,51296,411160,"(64, 32)"
+model,accuracy,macro_f1,parameters,weights,approx_model_bytes,hidden_layers,train_images,test_images
+real_cifar10_mlp_float64_storage,0.408,0.4029,402250,402048,3218000,"(128, 64)",5000,1500

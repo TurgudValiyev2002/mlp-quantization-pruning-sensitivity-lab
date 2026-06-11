@@ -1,42 +1,40 @@
 # MLP Quantization and Pruning Sensitivity Lab
 
-![Quantization and pruning overview](assets/quantization_and_pruning_overview.jpg)
+![Quantization overview](assets/quantization.png)
 
-Figure: quantization reduces precision, while pruning removes weights or neurons. This project compares both ideas on the same MLP classifier.
+Figure: quantization stores the same model weights with fewer bits, reducing memory while trying to keep the model useful.
 
-![Quantization overview](assets/quantization_overview.png)
+![Quantization and pruning overview](assets/quantization-and-pruning.jpg)
 
-Figure: quantization stores model parameters with fewer bits, reducing memory while trying to keep the model useful.
+Figure: quantization reduces numeric precision, while pruning removes small or less important weights.
+
+![Project overview](assets/readme_project_overview.png)
+
+Figure: train an MLP on real CIFAR-10, then test quantization, pruning, and combined pruning plus int8 compression.
 
 ## Motivation
 
-Model compression is important for edge AI and embedded AI because smaller models are easier to store, transfer, and deploy. Two common compression methods are quantization and pruning. They solve related but different problems:
-
-- Quantization stores each parameter with fewer bits.
-- Pruning removes low-importance weights to create sparsity.
-
-The important research question is not only "Which method compresses more?" We also need to ask when accuracy starts to fall and which method is safer under different deployment conditions.
+The earlier version of this project used a synthetic image task and produced perfect accuracy. That was not a useful sensitivity test. A compression lab should show where accuracy stays stable and where it starts to break. This version uses real CIFAR-10, which is harder and more realistic.
 
 ## Project Goal
 
-We trained an MLP classifier on the same controlled CIFAR-style dataset used in the previous quantization project. Then we tested:
+We trained a small MLP on real CIFAR-10 and measured how accuracy changes under:
 
-1. Quantization sensitivity from 32-bit down to 1-bit weights.
-2. Magnitude pruning sensitivity from 0 percent to 98 percent weight sparsity.
-3. Combined pruning plus INT8 quantization.
-
-The aim is to understand how quickly accuracy changes as compression becomes stronger.
+- Weight quantization from 64-bit storage down to 1-bit
+- Magnitude pruning from 0% to 98% sparsity
+- Combined pruning followed by int8 quantization
 
 ## Dataset
 
-The dataset is a controlled CIFAR-style image dataset with:
+We used the official CIFAR-10 Python archive. The script downloads it into the ignored `data/` folder.
 
-- 1200 RGB images.
-- Image size: 16x16x3.
-- 3 visual classes.
-- Simple color and shape patterns.
+Experiment subset:
 
-It is not the real CIFAR dataset. It is a local image-like dataset designed so the compression experiment can run offline and stay reproducible.
+- Training images: 5,000
+- Test images: 1,500
+- Classes: 10
+- Image size: 32x32 RGB
+- Features: flattened standardized pixels
 
 ## Tools
 
@@ -44,98 +42,69 @@ Python, NumPy, pandas, scikit-learn, and matplotlib.
 
 ## Model
 
-We trained an MLP classifier:
+The model is an MLP classifier with:
 
-- Input: flattened 16x16x3 image vector.
-- Hidden layers: `(64, 32)`.
-- Activation: ReLU.
-- Optimizer: Adam.
-- Early stopping: enabled.
-- Test split: 25 percent.
-- Random seed: 42.
+- Hidden layers: 128 and 64 neurons
+- Activation: ReLU
+- Optimizer: Adam
+- Early stopping: enabled
+- Validation fraction: 0.15
+- Maximum iterations: 80
 
-The trained model had:
+This is still not a CNN, so the baseline accuracy is modest. That is acceptable here because the goal is compression sensitivity, not state-of-the-art CIFAR-10 classification.
 
-| Property | Value |
-|---|---:|
-| Total parameters | 51,395 |
-| Weight parameters | 51,296 |
-| Baseline storage estimate | 411,160 bytes |
-| Baseline accuracy | 1.0000 |
-| Baseline macro F1 | 1.0000 |
+## Baseline Result
 
-## Quantization Experiment
-
-We quantized the trained MLP weights to different bit widths and evaluated the same test set.
-
-| Bits per Parameter | Accuracy | Macro F1 | Compression Ratio vs Float64 |
-|---:|---:|---:|---:|
-| 32 | 1.0000 | 1.0000 | 2.00 |
-| 16 | 1.0000 | 1.0000 | 4.00 |
-| 8 | 1.0000 | 1.0000 | 8.00 |
-| 4 | 1.0000 | 1.0000 | 16.00 |
-| 2 | 0.9767 | 0.9766 | 32.00 |
-| 1 | 0.7200 | 0.6591 | 64.00 |
-
-![Accuracy vs quantization bits](results/accuracy_vs_quantization_bits.png)
-
-## Pruning Experiment
-
-We pruned small-magnitude weights and measured the accuracy after each sparsity level.
-
-| Weight Sparsity | Accuracy | Macro F1 | Compression Ratio vs Dense Float64 |
-|---:|---:|---:|---:|
-| 0.00 | 1.0000 | 1.0000 | 0.98 |
-| 0.25 | 1.0000 | 1.0000 | 1.31 |
-| 0.50 | 1.0000 | 1.0000 | 1.94 |
-| 0.70 | 1.0000 | 1.0000 | 3.16 |
-| 0.85 | 1.0000 | 1.0000 | 5.98 |
-| 0.90 | 1.0000 | 1.0000 | 8.52 |
-| 0.95 | 1.0000 | 1.0000 | 14.83 |
-| 0.98 | 0.3333 | 0.1667 | 26.68 |
-
-![Accuracy vs pruning sparsity](results/accuracy_vs_pruning_sparsity.png)
-
-## Combined Pruning and INT8
-
-We also tested pruning first and then applying INT8 quantization.
-
-| Method | Accuracy | Macro F1 | Compression Ratio vs Dense Float64 |
+| Model | Accuracy | Macro F1 | Parameters |
 |---|---:|---:|---:|
-| prune 50 percent then INT8 | 1.0000 | 1.0000 | 12.52 |
-| prune 70 percent then INT8 | 1.0000 | 1.0000 | 18.20 |
-| prune 85 percent then INT8 | 1.0000 | 1.0000 | 27.60 |
-| prune 90 percent then INT8 | 1.0000 | 1.0000 | 33.34 |
+| Real CIFAR-10 MLP | 0.4080 | 0.4029 | 402,250 |
 
-![Compression accuracy tradeoff](results/compression_accuracy_tradeoff.png)
+## Quantization Results
+
+| Bits Per Parameter | Accuracy | Macro F1 | Compression Ratio |
+|---:|---:|---:|---:|
+| 64 | 0.4080 | 0.4029 | 1.00 |
+| 32 | 0.4080 | 0.4029 | 2.00 |
+| 16 | 0.4080 | 0.4029 | 4.00 |
+| 8 | 0.4080 | 0.4032 | 8.00 |
+| 4 | 0.3980 | 0.3951 | 16.00 |
+| 2 | 0.1933 | 0.1592 | 32.00 |
+| 1 | 0.2253 | 0.2009 | 64.00 |
+
+![Accuracy vs quantization](results/accuracy_vs_quantization_bits.png)
+
+## Pruning Results
+
+| Weight Sparsity | Accuracy | Macro F1 | Compression Ratio |
+|---:|---:|---:|---:|
+| 0.00 | 0.4080 | 0.4029 | 0.98 |
+| 0.25 | 0.4140 | 0.4094 | 1.31 |
+| 0.50 | 0.4060 | 0.4044 | 1.94 |
+| 0.70 | 0.4040 | 0.4005 | 3.16 |
+| 0.85 | 0.3827 | 0.3752 | 6.02 |
+| 0.90 | 0.3600 | 0.3521 | 8.62 |
+| 0.95 | 0.3180 | 0.3071 | 15.13 |
+| 0.98 | 0.1993 | 0.1737 | 27.69 |
+
+![Accuracy vs pruning](results/accuracy_vs_pruning_sparsity.png)
+
+![Compression trade-off](results/compression_accuracy_tradeoff.png)
 
 ## Interpretation
 
-Quantization was very safe down to 4-bit in this controlled task. At 2-bit, accuracy started to fall slightly. At 1-bit, the model lost too much information and accuracy dropped strongly.
+The real CIFAR-10 experiment gives a useful pattern. Int8 quantization preserved accuracy almost perfectly. Four-bit quantization caused a small drop. Two-bit and one-bit quantization damaged the model strongly.
 
-Pruning was also safe up to 95 percent sparsity, but 98 percent pruning destroyed the model. This means the MLP had many redundant weights, but not unlimited redundancy.
+Pruning was surprisingly stable up to about 70% sparsity. This suggests many weights in the MLP are not essential for this subset. After 85% sparsity, accuracy started to fall more clearly, and 98% pruning damaged the model heavily.
 
-The combined method was strongest in this experiment. Pruning 90 percent of weights and then applying INT8 quantization kept full accuracy while reaching an estimated 33.34x compression ratio.
-
-## Which Method Is Better?
-
-For general deployment, INT8 quantization is usually the safer first choice. It is simple, hardware-friendly, and often supported by inference runtimes.
-
-Pruning is useful when the deployment system can exploit sparse matrices. If the hardware or inference library cannot speed up sparse operations, pruning may reduce theoretical storage but not real latency.
-
-In this specific experiment:
-
-- Best safe simple method: 4-bit quantization, because it kept 1.0000 accuracy with 16x compression.
-- Best high-compression method: 90 percent pruning plus INT8, because it kept 1.0000 accuracy with 33.34x estimated compression.
-- Unsafe setting: 98 percent pruning and 1-bit quantization, because both caused large accuracy loss.
+The combined pruning plus int8 result is practical: pruning 70% of weights and then using int8 kept accuracy at 0.4040 while giving an estimated 18.66x compression ratio.
 
 ## Conclusion
 
-Quantization and pruning are complementary. Quantization reduces bits per parameter; pruning reduces the number of active weights. The best compression strategy depends on the target hardware, the allowed accuracy loss, and whether sparse inference is supported.
+This project now shows real compression sensitivity instead of a perfect synthetic result. For this MLP, int8 quantization and moderate pruning are safe, while very aggressive pruning or 2-bit/1-bit quantization is risky. A stronger next step is to repeat the same analysis on a small CNN.
 
 ## How To Run
 
 ```bash
 pip install -r requirements.txt
-python 1_mlp_quantization_pruning_sensitivity.py
+python 1_real_cifar_mlp_compression_sensitivity.py
 ```
