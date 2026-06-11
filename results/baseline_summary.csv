@@ -1,2 +1,2 @@
-model,accuracy,macro_f1,parameters,weights,approx_model_bytes,hidden_layers,train_images,test_images
-real_cifar10_mlp_float64_storage,0.408,0.4029,402250,402048,3218000,"(128, 64)",5000,1500
+model,accuracy,macro_f1,parameters,approx_model_bytes,train_images,test_images,best_epoch
+small_cifar10_cnn_float32,0.478,0.4539,94986,379944,6000,1500,5

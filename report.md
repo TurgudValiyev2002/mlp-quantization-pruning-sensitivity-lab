@@ -1,27 +1,27 @@
-# One-Page Report: MLP Quantization and Pruning Sensitivity
+# One-Page Report: CNN Quantization and Pruning Sensitivity
 
 ## Motivation
 
-We use real CIFAR-10 so the compression curves show meaningful accuracy changes.
+We compared quantization and pruning on the same CNN to understand which compression method is safer for a real CIFAR-10 image model.
 
 ## Dataset
 
-We used the official CIFAR-10 Python archive. The experiment used 5,000 training images and 1,500 test images from 10 classes. Images were flattened into standardized pixel features.
+The experiment used 6,000 CIFAR-10 training images and 1,500 test images across 10 classes.
 
-## Model and Method
+## Method
 
-We trained an MLP with hidden layers `(128, 64)`, ReLU activation, Adam optimization, early stopping, validation fraction 0.15, and maximum 80 iterations. Then we evaluated quantization, magnitude pruning, and pruning followed by int8 quantization.
+We trained a small CNN with three convolution blocks. Then we evaluated post-training quantization, magnitude pruning, and pruning followed by int8 quantization.
 
 ## Results
 
-The baseline MLP achieved 0.4080 accuracy and 0.4029 macro F1. Int8 quantization preserved accuracy at 0.4080. Four-bit quantization dropped slightly to 0.3980. Two-bit quantization dropped to 0.1933.
+The baseline CNN reached 0.4780 accuracy. Int8 quantization kept 0.4747 accuracy, while 2-bit quantization dropped to 0.1793. Pruning was stable up to 50% sparsity and reached 0.4907 accuracy. At 70% sparsity, accuracy fell to 0.4080. At 85% sparsity, it collapsed to 0.1607.
 
-Pruning was stable up to 70% sparsity: accuracy was 0.4040 at 70%. At 90% sparsity, accuracy fell to 0.3600, and at 98% sparsity it fell to 0.1993. Pruning 70% of weights followed by int8 quantization kept 0.4040 accuracy with an estimated 18.66x compression ratio.
+The best combined compression setting was 50% pruning followed by int8 quantization: 0.4940 accuracy with an estimated 6.44x compression ratio.
 
 ## Interpretation
 
-The model has redundancy: many small weights can be removed without large accuracy loss. However, very aggressive compression destroys useful signal. Int8 is safe here; 2-bit and 1-bit are not.
+Moderate compression is safe, but extreme compression destroys the learned representation. Int8 quantization is the safest method here. Pruning can help at 50%, but high sparsity is risky.
 
 ## Conclusion
 
-This project gives a realistic compression sensitivity analysis. Moderate pruning and int8 quantization are useful, while extreme pruning or very low-bit quantization should be used carefully.
+The project now gives a CNN-based compression sensitivity analysis. For this model, int8 and 50% pruning are practical; 2-bit quantization and 85%+ pruning are too aggressive.
