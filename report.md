@@ -24,4 +24,4 @@ Moderate compression is safe, but extreme compression destroys the learned repre
 
 ## Conclusion
 
-The project now gives a CNN-based compression sensitivity analysis. For this model, int8 and 50% pruning are practical; 2-bit quantization and 85%+ pruning are too aggressive.
+The project gives a CNN-based compression sensitivity analysis. For this model, int8 and 50% pruning are practical; 2-bit quantization and 85%+ pruning are too aggressive.
